@@ -1,4 +1,4 @@
-https://img.shields.io/badge/<license>-<APGL_3_0>-<blue>
+![APGL-license](https://img.shields.io/badge/license-APGL_3_0-blue)
 
 # Setting Up the Environment
 **Prerequisit: You must have installed python 3.x. All scripts were tested on Ubuntu 18.04.3 LTS**
