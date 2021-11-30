@@ -36,6 +36,8 @@ edge_embed_method = ['average', 'hadamard', 'weighted_l1', 'weighted_l2']
 EMB_PATH = f"GraphSAGE_logdir/unsup-{disease.replace(' ', '_')}/graphsage_seq_small_0.000010/"
 all_file_loc = glob.glob(f"LP_train_test_splits{screening}/"
                          f"{ppi_scaffold}_split_nprPPI{npr_ppi}_nprDEP{npr_dep}/{disease.replace(' ','_')}/*")
+all_file_loc_ppi = glob.glob(f"LP_train_test_splits/"
+                         f"{ppi_scaffold}_split_nprPPI{npr_ppi}_nprDEP{npr_dep}/{disease.replace(' ','_')}/*")
 
 dis_embs_values = np.load(EMB_PATH + "val.npy")
 assert dis_embs_values.shape[1] == 128, f"Wrong number of embeddings dimensions, {dis_embs_values.shape}"
@@ -71,13 +73,13 @@ for edge_method in edge_embed_method:
         # If we want to calculate performance
         if args.general_performance:
             print("\nGENERAL PEROFRMANCE\n")
-            test_edges = read_h5py(list(filter(re.compile(rf'(.*/teE_{repeat}.hdf5)').match, all_file_loc))[0])
-            test_labels = read_h5py(list(filter(re.compile(rf'(.*/label_teE_{repeat}.hdf5)').match, all_file_loc))[0])
+            test_edges = read_h5py(list(filter(re.compile(rf'(.*/test_all_ppis_{repeat}.hdf5)').match, all_file_loc_ppi))[0])
+            test_labels = read_h5py(list(filter(re.compile(rf'(.*/labeltest_all_ppis_{repeat}.hdf5)').match, all_file_loc_ppi))[0])
         elif args.target_prediction:
             print("\nTARGET PREDICTION\n")
             test_edges = read_h5py(f"{BASE_PATH}/LP_train_test_splits{screening}/"
-                                f"{ppi_scaffold}_split_nprPPI{npr_ppi}_nprDEP{npr_dep}{pos_thresh}/{disease.replace(' ', '_')}/"
-                                f"complete_predset_without_cl2cl.hdf5")
+                                   f"{ppi_scaffold}_split_nprPPI{npr_ppi}_nprDEP{npr_dep}{pos_thresh}/{disease.replace(' ', '_')}/"
+                                   f"complete_predset_without_cl2cl.hdf5")
             assert pd.DataFrame(test_edges).shape == pd.DataFrame(test_edges).drop_duplicates().shape
 
             # Note: random labels are generated since we are predicting on the whole dataset, not used for evaluating performance
@@ -85,8 +87,8 @@ for edge_method in edge_embed_method:
 
         elif args.total_performance:
             print("\nTOAL PERFORMANCE: GENERAL + DEPENDENCIES\n")
-            test_edges_gen = read_h5py(list(filter(re.compile(rf'(.*/teE_{repeat}.hdf5)').match, all_file_loc))[0])
-            test_labels_gen = read_h5py(list(filter(re.compile(rf'(.*/label_teE_{repeat}.hdf5)').match, all_file_loc))[0])
+            test_edges_gen = read_h5py(list(filter(re.compile(rf'(.*/test_all_ppis_{repeat}.hdf5)').match, all_file_loc_ppi))[0])
+            test_labels_gen = read_h5py(list(filter(re.compile(rf'(.*/labeltest_all_ppis_{repeat}.hdf5)').match, all_file_loc_ppi))[0])
 
             test_edges_dep = read_h5py(list(filter(re.compile(rf'(.*/test_all_cls_{repeat}.hdf5)').match, all_file_loc))[0])
             test_labels_dep = read_h5py(
@@ -162,7 +164,7 @@ for edge_method in edge_embed_method:
 
 if args.total_performance:
     save_name = f"{BASE_PATH}/" \
-                f"General_Benchmark_Res{screening}/{ppi_scaffold}/{disease.replace(' ', '_')}/" \
+                f"PPI_Benchmark_Res{screening}/{ppi_scaffold}/{disease.replace(' ', '_')}/" \
                 f"graphsage_metrics_emb{dis_embs_values.shape[1]}.pickle"
     with open(save_name, 'wb') as handle:
         pickle.dump(metrics_general, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -175,7 +177,7 @@ if args.total_performance:
 
 elif args.general_performance:
     save_name = f"{BASE_PATH}/" \
-                f"General_Benchmark_Res{screening}/{ppi_scaffold}/{disease.replace(' ', '_')}/" \
+                f"PPI_Benchmark_Res{screening}/{ppi_scaffold}/{disease.replace(' ', '_')}/" \
                 f"graphsage_metrics_emb{dis_embs_values.shape[1]}.pickle"
     with open(save_name, 'wb') as handle:
         pickle.dump(metrics, handle, protocol=pickle.HIGHEST_PROTOCOL)

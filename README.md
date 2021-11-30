@@ -8,14 +8,14 @@
    cd DeepLinkPrediction
    python setup.py install
    ```
-   
+
 2. Clone and Install [OpenNE](https://github.com/thunlp/OpenNE) (For methods GraRep, DeepWalk, node2vec and LINE):
     ```
    cd OpenNE/src
    python setup.py install
    ```
 
-3. Install [forked EvalNE repository](https://github.ugent.be/PSTRYBOL/EvalNE) (for baseline methods and benchmarking framework). Clone the repository, then:
+3. Install [forked EvalNE repository](https://github.com/pstrybol/EvalNE) (for baseline methods and benchmarking framework). Clone the repository, then:
     ```
    cd EvalNE
    python setup.py install 
@@ -28,7 +28,6 @@ entirety in ~298 seconds on a server (hardware: 48-core CPU and 189GB RAM) and ~
 and 16GB RAM). 
 
 # Workflow for a **single** cancer type
-**TODO complete this section**
 1. Construct heterogeneous network by integrating the LOF screening data of a certain cancer type (`--disease`)
 with a functional interaction scaffold (`--ppi_scaffold`) using `scripts/construct_train_test_edges_separate_args.py`.
 
@@ -63,6 +62,3 @@ does not allow for the evaluation of different test sets on the same trained mod
 test and and also on a separate prediction set (eg all possible combinations of genes - cell line), 2 separate EvalNE runs
 are required. Additionally, EvalNE constructs tmp files on each run making it impossible to run EvalNE on 2 separate 
 test sets at the same time impossible, **unless** each API call to EvalNE is sitauted in its own separate directory.
-
-#### TODO
-- reactome other cancer types (lung is done)

@@ -94,7 +94,7 @@ for disease in diseases:
         score_func = roc_auc_score
 
     common_index = set(performance_dict[metric + '_' + 'targets'].index) & \
-                    set(performance_dict[metric + '_' + 'deps'].index)
+                   set(performance_dict[metric + '_' + 'deps'].index)
     common_index.remove("metapath2vec++")
     df_dep = performance_dict[metric + '_' + 'deps'].loc[common_index]
     # ap_per_run[disease].drop("metapath2vec++", inplace=True)

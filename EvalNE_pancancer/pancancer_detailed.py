@@ -1,5 +1,5 @@
 from DeepLinkPrediction.InteractionNetwork import UndirectedInteractionNetwork
-from DeepLinkPrediction.utils import read_h5py, read_ppi_scaffold, construct_EvalNE_splits, eval_other, eval_baselines, evaluate_dw
+from DeepLinkPrediction.utils import read_h5py, read_ppi_scaffold, construct_EvalNE_splits, eval_other, eval_baselines, write_h5py
 from sklearn.metrics import average_precision_score
 from evalne.evaluation import edge_embeddings
 from evalne.evaluation.score import Scoresheet
