@@ -4,6 +4,7 @@ from DeepLinkPrediction.utils import *
 import pandas as pd
 import argparse
 import random
+random.seed(23)
 import pickle
 
 if os.getcwd().endswith("DepMap_DeepLinkPrediction_Benchmark"):
@@ -19,9 +20,8 @@ parser.add_argument('--screening', required=True, type=str)
 parser.add_argument('--ppi_scaffold', required=True, type=str)
 parser.add_argument('--pos_thresh', required=True, type=float)
 parser.add_argument('--transductive', required=False, action='store_true')
-
+parser.add_argument('--transductive_20', required=False, action='store_true')
 args = parser.parse_args()
-
 
 # Set location variables
 PPI_SCAFFOLD_LOC = f"{BASE_PATH}/ppi_network_scaffolds/"
@@ -82,12 +82,12 @@ else:
 
 # Extract positive depedencies (i.e. score < -1.5)
 pos = extract_pos_dict_at_threshold(dis_df, threshold=pos_thresh)
+uniks, counts = np.unique([l for sublist in pos.values() for l in sublist], return_counts=True)
 
 # bin_ = 'bin3'
 # gene = 'LSM3'
 if args.transductive:
     print("Transductive")
-    uniks, counts = np.unique([l for sublist in pos.values() for l in sublist], return_counts=True)
     transductive_df = pd.DataFrame(uniks, columns=['gene'], index=uniks)
     transductive_df['bin_'] = pd.qcut(counts, 3, labels=['bin1', 'bin2', 'bin3'])
     transductive_df['count'] = counts
@@ -131,6 +131,29 @@ if args.transductive:
                 f"{BASE_PATH}/heterogeneous_networks/{bin_}_{gene}_{ppi}_{disease.replace(' ', '_')}_dependenciesint{screening}"
                 f"{pos_thresh_str}.csv",
                 header=None, index=False)
+elif args.transductive_20:
+    thresh = np.round(uniks.shape[0]*0.2).astype(int)
+    sampled = set(random.sample(list(uniks), thresh))
+
+    pos_new = {k: set(v) - sampled for k, v in pos.items()}
+    to_remove = [k for k, v in pos_new.items() if len(v) < 3]
+    if to_remove:
+        pos_new = {k: v for k, v in pos_new.items() if k not in to_remove}
+    dis_df_new = dis_df.loc[pos_new.keys(), set(dis_df.columns) - sampled]
+    dis_df_new.to_csv(f"{BASE_PATH}/depmap_specific_cancer_df/transductive20_STRING_{disease.replace(' ', '_')}.csv",
+                      index=True, header=True)
+    pos_new_df = pd.DataFrame([tuple((k, i)) for k, v in pos_new.items() for i in v], columns=['Gene_A', 'Gene_B'])
+
+    heterogeneous_network = pd.concat([ndex_nw_obj.getInteractionNamed(), pos_new_df])
+    heterogeneous_network_obj = UndirectedInteractionNetwork(heterogeneous_network)
+
+    heterogeneous_network_obj.getInteractionNamed().to_csv(
+        f"{BASE_PATH}/heterogeneous_networks/transductive20_STRING_{disease.replace(' ', '_')}.csv",
+        header=True, index=False)
+    heterogeneous_network_obj.interactions.to_csv(
+        f"{BASE_PATH}/heterogeneous_networks/transductive20_STRING_{disease.replace(' ', '_')}int.csv",
+        header=None, index=False)
+
 else:
     transductive = ""
     pos_df = pd.DataFrame([tuple((k, i)) for k, v in pos.items() for i in v], columns=['Gene_A', 'Gene_B'])
