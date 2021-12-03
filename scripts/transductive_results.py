@@ -123,7 +123,7 @@ for method in ['AROPE', 'adamic-adar-index', 'all-baselines', 'common-neighbours
 
 # Per cell line performance
 to_plot = pd.DataFrame(ap_per_cl)
-to_plot.mean().sort_values()
+to_plot = to_plot[to_plot.mean().sort_values(ascending=False).index]
 sns.boxplot(data=to_plot.melt(), x='value', y='variable')
 plt.show()
 
