@@ -36,7 +36,7 @@ if args.methods:
     methods = args.methods.split(';')
 else:
     methods = sorted([f.split('/')[-1].split('_')[0] for f in
-                      glob.glob(f"onlyDEPALL_5epochs02valShuffled_nprPPI{npr_ppi}_nprDEP{npr_dep}_{ppi_scaffold}_emb128{screening}{pos_thresh_str}/"
+                      glob.glob(f"onlyDEPALL_5epochs02valShuffled_nprPPI{npr_ppi}_nprDEP{npr_dep}_{ppi_scaffold}_emb128{screening}/"
                                 f"{disease.replace(' ', '_')}_{train_ratio}percent/*")])
 if 'metapath2vec++' in methods:
     methods.remove('metapath2vec++')
@@ -87,10 +87,10 @@ raw_data = {}
 # fig_auc, ax_auc = plt.subplots(figsize=(11, 6))
 for i, method in enumerate(methods):
     print(method)
-    total_df = pd.read_pickle(glob.glob(f"onlyDEPALL_5epochs02valShuffled_nprPPI{npr_ppi}_nprDEP{npr_dep}_{ppi_scaffold}_emb128{screening}{pos_thresh_str}/"
+    total_df = pd.read_pickle(glob.glob(f"onlyDEPALL_5epochs02valShuffled_nprPPI{npr_ppi}_nprDEP{npr_dep}_{ppi_scaffold}_emb128{screening}/"
                                         f"{disease.replace(' ', '_')}_{train_ratio}percent/"
                                         f"{method}*/"
-                                        f"full_df_allruns_{disease.replace(' ', '_')}_emb128_{train_ratio}percent_final.pickle")[0])
+                                        f"full_df_allruns_{disease.replace(' ', '_')}_emb128_{train_ratio}percent.pickle")[0])
     total_df_subset = total_df[total_df.TestEdges_A.isin(common_cls)] # only take 88 cell lines
     total_df_subset = total_df_subset[~total_df_subset.TestEdges_B.isin(all_cls)] # remove cl2cl interaction
     total_df_subset.reset_index(drop=True, inplace=True)
@@ -204,7 +204,7 @@ for i, method in enumerate(methods):
 # plt.show()
 # fig_auc.savefig(f"drug_sensitivity_data/100percent_final/roc_targets", bbox_inches='tight', dpi=300)
 # plt.close(fig_auc)
-pd.DataFrame(raw_data).to_csv(f"drug_sensitivity_data_{ppi_scaffold}/100percent_final/roc_targets_raw_{disease.replace(' ', '_')}{screening}{pos_thresh_str}.csv")
+# pd.DataFrame(raw_data).to_csv(f"drug_sensitivity_data_{ppi_scaffold}/100percent_final/roc_targets_raw_{disease.replace(' ', '_')}{screening}{pos_thresh_str}.csv")
 
 tmp_d = {"AP_targets": performance_df_ap_targets, "AUROC_targets": performance_df_auroc_targets}
 

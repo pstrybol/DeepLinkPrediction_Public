@@ -54,15 +54,16 @@ if disease == 'Pan_Cancer':
 else:
     test_preds_fp = glob.glob(
         f"onlyDEPALL_5epochs02valShuffled_nprPPI{npr_ppi}_nprDEP{npr_dep}_{ppi_scaffold}"
-        f"_emb{emb_dim}{screening}{pos_thresh_str}/"
+        f"_emb{emb_dim}{screening}/"
         f"{disease}_{train_ratio}percent/*")
 
 # test_preds_fp = glob.glob(f"PPIandDEP_5epochs02valShuffled_nprPPI{npr_ppi}_nprDEP{npr_dep}_{ppi_scaffold}/"
 #                           f"{disease.replace(' ','_')}_emb{emb_dim}/*")
 
 methods = set([f.split('/')[-1].split('_')[0] for f in test_preds_fp])
-methods.remove('PanCancer')
-# methods = [m for m in methods if 'GraphSAGE' in m]
+if 'PanCancer' in methods:
+    methods.remove('PanCancer')
+methods = [m for m in methods if 'GraphSAGE' in m]
 print(methods)
 
 all_df = {}

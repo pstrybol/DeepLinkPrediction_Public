@@ -62,7 +62,6 @@ for disease in diseases:
                             header=0, index_col=0)
 
     drug_sens = pd.read_csv('depmap_data/processed_primary-screen-replicate-logfold.csv', header=0, index_col=0)
-    common_cls = set(dis_df.index) & set(drug_sens.index) & set(crispr_df.index)
 
     performance_dict = {}
 
@@ -86,16 +85,23 @@ for disease in diseases:
 
     methods_nice_name_d = {'line-opene': 'LINE', 'n2v-opene': 'node2vec', 'deepwalk-opene': 'DeepWalk',
                            'DLP-hadamard': 'DLP', 'grarep-opene': 'GraRep',
-                           'original': 'DepMap', 'DLP-weighted-l2-deepwalk-opene': 'DLP-DeepWalk'}
-
+                           'original': 'RNAi', 'DLP-weighted-l2-deepwalk-opene': 'DLP-DeepWalk',
+                           "GraphSAGE-average":"GraphSAGE", "GraphSAGE-weighted-l2":"GraphSAGE",
+                           "GraphSAGE-weighted-l1":"GraphSAGE", "GraphSAGE-hadamard":"GraphSAGE"}
     if metric == 'AP':
         score_func = average_precision_score
     else:
         score_func = roc_auc_score
 
+    performance_dict['AP_deps'].index = [methods_nice_name_d[i] if i in methods_nice_name_d else i
+                                         for i in performance_dict['AP_deps'].index]
+    performance_dict['AP_targets'].index = [methods_nice_name_d[i] if i in methods_nice_name_d else i
+                                            for i in performance_dict['AP_targets'].index]
+
     common_index = set(performance_dict[metric + '_' + 'targets'].index) & \
                    set(performance_dict[metric + '_' + 'deps'].index)
-    common_index.remove("metapath2vec++")
+    if 'metapath2vec++' in common_index:
+        common_index.remove("metapath2vec++")
     df_dep = performance_dict[metric + '_' + 'deps'].loc[common_index]
     # ap_per_run[disease].drop("metapath2vec++", inplace=True)
     df_tar = performance_dict[metric + '_' + 'targets'].loc[common_index]
@@ -108,23 +114,28 @@ for disease in diseases:
     cl_scores_cirspr = []
     target_label_l_cirspr = []
 
-    targets = {}
-    for i, cl in enumerate(common_cls):
-        with open(f"drug_sensitivity_data_{ppi_scaffold}/targets_per_cell_line/{disease}/{cl}_targets_min2.txt", "r") as f:
-            targets[cl] = set([i.strip('\n') for i in f.readlines()])
+    targets_rnai = {}
+    targets_crispr = {}
+    common_cls_crispr = set(drug_sens.index) & set(crispr_df.index)
+    common_cls_rnai = set(drug_sens.index) & set(dis_df.index)
 
-        cl_scores_rnai.append(dis_df.loc[cl].dropna().sort_values(ascending=True)*-1)
-        target_label_l_rnai.append(np.array([score in targets[cl] for score in cl_scores_rnai[i].index.values]))
+    for i, cl in enumerate(common_cls_rnai):
+        with open(f"drug_sensitivity_data_{ppi_scaffold}/targets_per_cell_line/{disease}/{cl}_targets_min2.txt", "r") as f1:
+            targets_rnai[cl] = set([i.strip('\n') for i in f1.readlines()])
+        cl_scores_rnai.append(dis_df.loc[cl].dropna().sort_values(ascending=True) * -1)
+        target_label_l_rnai.append(np.array([score in targets_rnai[cl] for score in cl_scores_rnai[i].index.values]))
 
+    for i, cl in enumerate(common_cls_crispr):
+        with open(f"drug_sensitivity_data_{ppi_scaffold}/targets_per_cell_line_crispr/{disease}/{cl}_targets_min2.txt", "r") as f2:
+            targets_crispr[cl] = set([i.strip('\n') for i in f2.readlines()])
         cl_scores_cirspr.append(crispr_df.loc[cl].dropna().sort_values(ascending=True)*-1)
-        target_label_l_cirspr.append(np.array([score in targets[cl] for score in cl_scores_cirspr[i].index.values]))
+        target_label_l_cirspr.append(np.array([score in targets_crispr[cl] for score in cl_scores_cirspr[i].index.values]))
 
-        # gp.prerank(rnk=crispr_df.loc[cl].dropna(), gene_sets={cl: targets[cl]}, outdir=f"test-crispr/{cl}")
-        # gp.prerank(rnk=dis_df.loc[cl].dropna(), gene_sets={cl: targets[cl]}, outdir=f"test-rnai/{cl}")
-
-        # orig_target_scores += [score_func(target_label, cl_scores)]
     depmap_tar_score = score_func(np.hstack((target_label_l_rnai)), np.hstack((cl_scores_rnai)))
     crispr_tar_score = score_func(np.hstack((target_label_l_cirspr)), np.hstack((cl_scores_cirspr)))
+
+    print(f"RNAi: {depmap_tar_score} - CRISPR: {crispr_tar_score}")
+    # crispr RNAi: 0.008582442770411432 - CRISPR: 0.015080697315120666
 
     # finally we calculate the correlations, averaging over the three runs:
     data_dict = {'rho': [], 'pval': []}
@@ -145,7 +156,8 @@ for disease in diseases:
     ax.axhline(depmap_tar_score, ls='--', color='k', label="DepMap")
     ax.axhline(crispr_tar_score, ls='-.', color='b', label="CRISPR")
     # for i, method in enumerate(ap_per_run[disease].index):
-    for i, method in enumerate(common_index):
+    methods = df_dep.mean(axis=1).sort_values(ascending=False).index
+    for i, method in enumerate(methods):
 
         plot_values_tar = df_tar.loc[method].values
         plot_values_dep = df_dep.loc[method].values
@@ -170,8 +182,8 @@ for disease in diseases:
 
     # Put a legend to the right of the current axis
     ax.legend(loc='center left', bbox_to_anchor=(1.1, 0.5), prop={'size': 6})
-    plt.show()
-    plt.savefig(f"drug_sensitivity_data_{ppi_scaffold}/100percent_final/PanCancer_"
+    # plt.show()
+    plt.savefig(f"drug_sensitivity_data_{ppi_scaffold}/100percent_final/"
                 f"scatterplot_preformances_{disease.replace(' ', '_')}{screening}",
                 bbox_inches='tight', dpi=600)
     plt.close()
