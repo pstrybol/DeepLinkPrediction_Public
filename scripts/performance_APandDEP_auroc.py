@@ -29,7 +29,7 @@ npr_dep = 3
 train_ratio = 100
 topk = 100
 methods_nice_name_d = {'line-opene': 'LINE', 'n2v-opene': 'node2vec', 'deepwalk-opene': 'DeepWalk',
-                       'grarep-opene': 'GraRep', 'original':'DepMap', 'DLP-hadamard': 'DLP',
+                       'grarep-opene': 'GraRep', 'original': 'RNAi', 'DLP-hadamard': 'DLP',
                        'DLP-weighted-l2-deepwalk-opene': 'DLP-DeepWalk'}
 
 if args.methods:
@@ -215,5 +215,5 @@ except:
     print("directory exists")
 
 with open(save_fp+
-          f"target_performance_100percent_final_{disease.replace(' ','_')}{pos_thresh_str}.pickle", 'wb') as handle:
+          f"target_performance_100percent_final_{disease.replace(' ','_')}.pickle", 'wb') as handle:
     pickle.dump(tmp_d, handle, protocol=pickle.HIGHEST_PROTOCOL)

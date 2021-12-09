@@ -43,7 +43,7 @@ ax.spines["right"].set_visible(False)
 ax.spines["top"].set_visible(False)
 
 ax.set_xlabel("First order neighbors", fontsize=13)
-ax.set_ylabel("Difference DLP-DeepWalk <> DepMap", fontsize=13)
+ax.set_ylabel("Difference in cell lines retrieved", fontsize=13)
 
 
 fig, ax = plt.subplots()
@@ -119,10 +119,10 @@ ax.spines["right"].set_visible(False)
 ax.spines["top"].set_visible(False)
 
 ax.set_xlabel("# Adjacent dependencies", fontsize=8)
-ax.set_ylabel("Difference DLP-DeepWalk <> DepMap", fontsize=8)
+ax.set_ylabel("Difference in cell lines retrieved", fontsize=8)
 
 blue = mlines.Line2D([], [], color='tab:blue', marker='o', linestyle='None', label='DLP-DeepWalk', alpha=0.5)
-orange = mlines.Line2D([], [], color='tab:orange', marker='s', linestyle='None',  label='DepMap', alpha=0.5)
+orange = mlines.Line2D([], [], color='tab:orange', marker='s', linestyle='None',  label='RNAi', alpha=0.5)
 
 ax.legend(handles=[blue, orange])
 # plt.show()

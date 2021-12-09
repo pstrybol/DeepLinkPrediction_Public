@@ -11,10 +11,17 @@ os.chdir('/home/bioit/pstrybol/DepMap_DeepLinkPrediction_Benchmark')
 diseases = ['Bile Duct Cancer', 'Brain Cancer', 'Bladder Cancer', 'Breast Cancer', 'Lung Cancer', 'Prostate Cancer',
             'Skin Cancer']
 methods_nice_name_d = {'line-opene': 'LINE', 'n2v-opene': 'node2vec', 'deepwalk-opene': 'DeepWalk',
-                       'grarep-opene': 'GraRep', 'original': 'DepMap', 'DLP-hadamard': 'DLP',
+                       'grarep-opene': 'GraRep', 'original': 'RNAi', 'DLP-hadamard': 'DLP',
                        'DLP-weighted-l2-deepwalk-opene': 'DLP-DeepWalk'}
 baselines = {'common-neighbours', 'jaccard-coefficient', 'adamic-adar-index', 'resource-allocation-index',
              'preferential-attachment', 'random-prediction', 'all-baselines'}
+
+crispr_thresholds_pos = {'Bile Duct Cancer': -1.822879, 'Prostate Cancer': -2.02022, 'Bladder Cancer': -2.029239,
+                     'Skin Cancer': -2.04098, 'Brain Cancer': -2.02018, 'Breast Cancer': -1.92688,
+                     'Lung Cancer': -1.99309}
+crispr_thresholds_neg = {'Bile Duct Cancer':-1.0644317, 'Prostate Cancer': -1.1559, 'Bladder Cancer': -1.33355,
+                     'Skin Cancer': -1.15769, 'Brain Cancer': -1.2030462, 'Breast Cancer': -0.963505,
+                     'Lung Cancer': -1.13189}
 
 ppi_scaffold = 'STRING'
 npr_ppi = 5
@@ -23,7 +30,7 @@ pval_thresh = 0.05
 drug_thresh = -2
 topK = 100
 train_ratio = 100
-screening = ''
+screening = '_crispr'
 pos_thresh = ""
 
 # Read in cell line information
@@ -78,6 +85,7 @@ for i, disease in enumerate(diseases):
     total_sensitive_targets_retrieved[disease] = {}
     percentage_sensitive_targets_retrieved[disease] = {}
     # for topK in np.append(np.arange(50, 550, 50), 1000):
+    #     print(topK)
     total_sensitive_targets_retrieved[disease][topK] = {}
     percentage_sensitive_targets_retrieved[disease][topK] = {}
     if screening == "_crispr":
@@ -120,11 +128,20 @@ for i, disease in enumerate(diseases):
     interm = extract_interm_dict_at_threshold(dis_df, pos, pos_threshold=-1.5, neg_threshold=-0.5)
     all_interm = set.union(*[set(i) for i in interm.values()]) - all_pos
 
-    pos_neg_df = pd.DataFrame([dis_df.applymap(lambda x: x < -1.5).sum(axis=1).mean(),
-                               dis_df.applymap(lambda x: (x > -1.5) & (x < -0.5)).sum(axis=1).mean(),
-                               dis_df.applymap(lambda x: x > -0.5).sum(axis=1).mean()],
-                              index=["Dependency", "Indecisive score", "No dependency"],
-                              columns=["count"])
+    if screening == '':
+        pos_neg_df = pd.DataFrame([dis_df.applymap(lambda x: x < -1.5).sum(axis=1).mean(),
+                                   dis_df.applymap(lambda x: (x > -1.5) & (x < -0.5)).sum(axis=1).mean(),
+                                   dis_df.applymap(lambda x: x > -0.5).sum(axis=1).mean()],
+                                  index=["Dependency", "Indecisive score", "No dependency"],
+                                  columns=["count"])
+    else:
+        pos_neg_df = pd.DataFrame([crispr_df.applymap(lambda x: x < crispr_thresholds_pos[disease]).sum(axis=1).mean(),
+                                   crispr_df.applymap(lambda x: (x > crispr_thresholds_pos[disease]) & (x < crispr_thresholds_neg[disease])).sum(axis=1).mean(),
+                                   crispr_df.applymap(lambda x: x > crispr_thresholds_neg[disease]).sum(axis=1).mean()],
+                                  index=["Dependency", "Indecisive score", "No dependency"],
+                                  columns=["count"])
+    print(disease)
+    print(pos_neg_df.round())
 
     # pie, ax = plt.subplots(figsize=[6.5, 4])
     # plt.pie(x=pos_neg_df.values.ravel(), autopct="%.1f%%", explode=[0.2] * 3, labels=pos_neg_df.index, pctdistance=0.5)
@@ -140,14 +157,14 @@ for i, disease in enumerate(diseases):
     subset_drug_sens = drug_sens.loc[common_cls, drug2targets]
 
     # Plot original TP/intermediaries/TN
-    plot_distribution_drug_sens(drug2targets=drug2targets, all_pos=all_pos, all_interm=all_interm,
-                                subset_drug_sens=subset_drug_sens, dis_df=dis_df,
-                                title=disease,
-                                save_raw_data=None, save_fp=None,
-                                annotation=None, ax=None)
-    save_fp = f"drug_sensitivity_data_{ppi_scaffold}/100percent_final/"\
-              f"TP_intermediary_FP_drugsensprofiles_cellsys_{disease.replace(' ', '_')}"
-    plt.savefig(save_fp, dpi=300)
+    # plot_distribution_drug_sens(drug2targets=drug2targets, all_pos=all_pos, all_interm=all_interm,
+    #                             subset_drug_sens=subset_drug_sens, dis_df=dis_df,
+    #                             title=disease,
+    #                             save_raw_data=None, save_fp=None,
+    #                             annotation=None, ax=None)
+    # save_fp = f"drug_sensitivity_data_{ppi_scaffold}/100percent_final/"\
+    #           f"TP_intermediary_FP_drugsensprofiles_cellsys_{disease.replace(' ', '_')}"
+    # plt.savefig(save_fp, dpi=300)
 
     degree_dict = {}
     degree_dict["DLP-weighted-l2-deepwalk-opene"] = []
@@ -277,11 +294,11 @@ axs.set_ylabel("Percentage sensitive benchmark targets retrieved")
 plt.title(f"Thresholds on target retrieval for disease: {disease}")
 # plt.show()
 plt.savefig(f"drug_sensitivity_data_{ppi_scaffold}{screening}/100percent_final/"
-            f"topK_thresholds_{disease.replace(' ', '_')}.pdf", dpi=600)
+            f"topK_thresholds_{disease.replace(' ', '_')}", dpi=600)
 plt.close()
 
 # Save the retrieved targets for all disease, all cell lines and all methods
-save_fp = f"drug_sensitivity_data_{ppi_scaffold}{screening}/100percent"
+save_fp = f"drug_sensitivity_data_{ppi_scaffold}{screening}/100percent_final"
 
 try:
     os.makedirs(save_fp)
