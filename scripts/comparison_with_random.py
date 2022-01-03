@@ -33,7 +33,7 @@ for disease in diseases:
     pval_method_better_random[disease] = {}
     for_dist_plot[disease] = []
 
-    ppi_scaffold_object = read_ppi_scaffold('STRING', 'ppi_network_scaffolds/')
+    ppi_scaffold_object = read_ppi_scaffold(ppi_scaffold, 'ppi_network_scaffolds/')
     degree_df = ppi_scaffold_object.getDegreeDF(set_index=True)
     dis_df = pd.read_csv(f"depmap_specific_cancer_df/{ppi_scaffold}_{disease.replace(' ', '_')}.csv", header=0,
                          index_col=0)
@@ -114,15 +114,20 @@ for disease in diseases:
 
 times_significant = {}
 times_significant["degree_based"] = \
-    pd.read_csv("drug_sensitivity_data/100percent_final/degreebased_random_sampling_newcmap_raw.csv",
+    pd.read_csv(f"drug_sensitivity_data_{ppi_scaffold}/100percent_final/degreebased_random_sampling_newcmap_raw.csv",
                 header=0, index_col=0)
 
 times_significant["hypergeom"] = \
-    pd.read_csv("drug_sensitivity_data/100percent_final/uniform_random_sampling_newcmap_raw.csv",
+    pd.read_csv(f"drug_sensitivity_data_{ppi_scaffold}/100percent_final/uniform_random_sampling_newcmap_raw.csv",
                 header=0, index_col=0)
 
 times_significant["degree_based"].drop("significantly worse", axis=1, inplace=True)
+times_significant["degree_based"].columns = ['better, yet not significantly',
+                                             'significantly better']
+
 times_significant["hypergeom"].drop("significantly worse", axis=1, inplace=True)
+times_significant["hypergeom"].columns = ['better, yet not significantly',
+                                          'significantly better']
 
 fig, axs = plt.subplots(1, 2, figsize=(8.5, 3.5))
 annot = ["a", "b"]
@@ -130,6 +135,6 @@ legends = [False, True]
 for i, val in enumerate(list(times_significant.values())[::-1]):
     plot_stacked_barplot(val, save_fp=None, ax=axs[i], annotation=annot[i], pdf=True, legend=legends[i])
 # plt.show()
-save_fp = f"drug_sensitivity_data/100percent_final/"\
+save_fp = f"drug_sensitivity_data_{ppi_scaffold}/100percent_final/"\
           f"comparison_with_random_figure4_revised.pdf"
-plt.savefig(save_fp, dpi=300)
+plt.savefig(save_fp, dpi=600)
