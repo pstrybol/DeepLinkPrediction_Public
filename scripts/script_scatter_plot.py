@@ -20,7 +20,7 @@ ppi_scaffold = "STRING"
 train_ratio = 100
 topk = 100
 metric = 'AP'
-screening = ''
+screening = '_crispr'
 # pos_thresh = "_pos-1_99309"
 training_method = None
 
@@ -35,10 +35,11 @@ baseline_methods = ['common-neighbours', 'jaccard-coefficient', 'adamic-adar-ind
                     'preferential-attachment', 'random-prediction', 'all-baselines']
 
 annotation = ['a', 'b']
-fig, axs = plt.subplots(2, 1, figsize=(8.5, 7))
-# for disease in diseases:
-for ix, screening in enumerate(['', '_crispr']):
-    disease = "Lung Cancer"
+# fig, axs = plt.subplots(2, 1, figsize=(8.5, 7))
+# fig, axs = plt.subplots(figsize=(8.5, 7))
+for disease in diseases:
+# for ix, screening in enumerate(['', '_crispr']):
+#     disease = "Lung Cancer"
     print(f"\n\t {disease.upper()}\n")
 
     if training_method == 'PanCancer':
@@ -155,14 +156,14 @@ for ix, screening in enumerate(['', '_crispr']):
               'darkgreen', 'gold', 'yellow']
 
     print('starting fig')
-    # fig, ax = plt.subplots(figsize=(8.5, 5))
+    fig, axs = plt.subplots(figsize=(8.5, 5))
     dep_scores, tar_scores = [], []
     opacity_rnai = 0.2 if screening == '_crispr' else 1
     opacity_crispr = 0.2 if screening == '' else 1
     if screening == '':
-        axs[ix].axhline(depmap_tar_score, ls='--', color='k', label="RNAi", alpha=opacity_rnai)
+        axs.axhline(depmap_tar_score, ls='--', color='k', label="RNAi", alpha=opacity_rnai)
     else:
-        axs[ix].axhline(crispr_tar_score, ls='-.', color='b', label="CRISPR", alpha=opacity_crispr)
+        axs.axhline(crispr_tar_score, ls='-.', color='b', label="CRISPR", alpha=opacity_crispr)
     # for i, method in enumerate(ap_per_run[disease].index):
     methods = df_dep.mean(axis=1).sort_values(ascending=False).index
     for i, method in enumerate(methods):
@@ -171,29 +172,29 @@ for ix, screening in enumerate(['', '_crispr']):
         plot_values_dep = df_dep.loc[method].values
         label = methods_nice_name_d[method] if method in methods_nice_name_d.keys() else method
         if label in baseline_methods:
-            axs[ix].scatter(plot_values_dep, plot_values_tar, label=label, marker='+', c=colors[i])
+            axs.scatter(plot_values_dep, plot_values_tar, label=label, marker='+', c=colors[i])
         else:
-            axs[ix].scatter(plot_values_dep, plot_values_tar, label=label, marker='o', c=colors[i])
+            axs.scatter(plot_values_dep, plot_values_tar, label=label, marker='o', c=colors[i])
         dep_scores += [plot_values_dep[2]]
         tar_scores += [plot_values_tar[2]]
 
-    axs[ix].spines['top'].set_visible(False)
-    axs[ix].spines['right'].set_visible(False)
-    axs[ix].set_ylim(0, 0.025)
-    axs[ix].set_xlabel('Dependency ' + metric, fontsize=8)
-    axs[ix].set_ylabel('drug target retrieval ' + metric, fontsize=8)
-    axs[ix].tick_params(axis='x', labelsize=6)
-    axs[ix].tick_params(axis='y', labelsize=6)
+    axs.spines['top'].set_visible(False)
+    axs.spines['right'].set_visible(False)
+    axs.set_ylim(0, 0.025)
+    axs.set_xlabel('Dependency ' + metric, fontsize=8)
+    axs.set_ylabel('drug target retrieval ' + metric, fontsize=8)
+    axs.tick_params(axis='x', labelsize=6)
+    axs.tick_params(axis='y', labelsize=6)
 
     if disease != "Lung Cancer":
         plt.title(f"{disease} - Spearman Correlation: {np.round(df.mean().rho*100)} (p-value = {np.round(df.mean().pval, 2)})")
 
     # Put a legend to the right of the current axis
-    axs[ix].legend(loc='center left', bbox_to_anchor=(1.1, 0.5), prop={'size': 6})
-    axs[ix].annotate(annotation[ix], xy=(-0.10, 1), xycoords='axes fraction', fontsize=8,
-                    horizontalalignment='left', verticalalignment='top')
-plt.subplots_adjust()
-# plt.show()
+    axs.legend(loc='center left', bbox_to_anchor=(1.1, 0.5), prop={'size': 6})
+    # axs.annotate(annotation, xy=(-0.10, 1), xycoords='axes fraction', fontsize=8,
+    #                  horizontalalignment='left', verticalalignment='top')
+# plt.subplots_adjust()
+    plt.show()
 plt.savefig(f"drug_sensitivity_data_{ppi_scaffold}/100percent_final/"
             f"Figure3_scatterplot_preformances_{disease.replace(' ', '_')}{screening}.pdf",
             bbox_inches='tight', dpi=600, pad_inches=0)

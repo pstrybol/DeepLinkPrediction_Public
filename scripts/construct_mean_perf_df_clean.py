@@ -4,12 +4,16 @@ import pickle
 import os
 os.chdir('/home/bioit/pstrybol/DepMap_DeepLinkPrediction_Benchmark')
 
-ppi_scaffold = 'STRING'
-diseases = ['Prostate Cancer', 'Bile Duct Cancer', 'Bladder Cancer', 'Breast Cancer', 'Skin Cancer', 'Brain Cancer',
-            'Lung Cancer']
+ppi_scaffold = 'reactome'
+screening = ''
+if screening == '_crispr':
+    diseases = ['Prostate Cancer', 'Bile Duct Cancer', 'Bladder Cancer', 'Breast Cancer', 'Skin Cancer', 'Brain Cancer',
+                'Lung Cancer']
+else:
+    diseases = ['Bile Duct Cancer', 'Prostate Cancer', 'Bladder Cancer', 'Skin Cancer', 'Brain Cancer', 'Breast Cancer',
+                'Lung Cancer', 'Pan Cancer']
 npr_ppi = 5
 npr_dep = 3
-screening = '_crispr'
 metrics = ['tn', 'fp', 'fn', 'tp', 'auroc', 'precision', 'recall', 'fallout', 'miss', 'accuracy', 'f_score',
            'average_precision', 'eval_time']
 methods_nice_name_d = {'line-opene': 'LINE', 'n2v-opene': 'node2vec', 'deepwalk-opene': 'DeepWalk',
@@ -74,18 +78,12 @@ ap['Pan Cancer'] = tmp.append(pd.Series(
     np.mean(pd.read_pickle(f"CellLine_Specific_Benchmark_Res{screening}/{ppi_scaffold}/Pan_Cancer/"
                            f"graphsage_metrics_emb128.pickle")['ap_average'])*100, index=['GraphSAGE']))
 
+# with open(f"CellLine_Specific_Benchmark_Res{screening}/{ppi_scaffold}/ap_across_diseases", 'wb') as handle:
+#     pickle.dump(ap_per_run, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-# with open(f"CellLine_Specific_Benchmark_Res/{ppi_scaffold}/auroc_across_diseases", 'wb') as handle:
-#     pickle.dump(auroc, handle, protocol=pickle.HIGHEST_PROTOCOL)
-# with open(f"CellLine_Specific_Benchmark_Res/{ppi_scaffold}/f1_across_diseases", 'wb') as handle:
-#     pickle.dump(f1, handle, protocol=pickle.HIGHEST_PROTOCOL)
-with open(f"CellLine_Specific_Benchmark_Res{screening}/{ppi_scaffold}/ap_across_diseases", 'wb') as handle:
-    pickle.dump(ap_per_run, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-# plot_heatmap_performance_values(ap,
-#                                 save_fp=f'CellLine_Specific_Benchmark_Res{screening}/{ppi_scaffold}/ap_heatmap_emb128{screening}',
-#                                 save_raw_data=f'CellLine_Specific_Benchmark_Res{screening}/{ppi_scaffold}/ap_heatmap_emb128_raw{screening}.csv',
-#                                 include_mean=True, pdf=False)
+plot_heatmap_performance_values(ap, save_fp=f"CellLine_Specific_Benchmark_Res{screening}/{ppi_scaffold}/ap_emb128_inclPan",
+                                save_raw_data=f"CellLine_Specific_Benchmark_Res{screening}/{ppi_scaffold}/ap_emb128_inclPan.csv",
+                                include_mean=False, pdf=False)
 
 ap_rnai = pd.read_csv(f"CellLine_Specific_Benchmark_Res/{ppi_scaffold}/ap_emb128_inclPan.csv", header=0, index_col=0)
 

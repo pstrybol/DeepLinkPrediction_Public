@@ -30,7 +30,7 @@ pval_thresh = 0.05
 drug_thresh = -2
 topK = 100
 train_ratio = 100
-screening = '_crispr'
+screening = ''
 pos_thresh = ""
 
 # Read in cell line information
@@ -80,8 +80,8 @@ fig, axs = plt.subplots(1, 1, figsize=(8.5, 3.5))
 # annot = ["a", "b"]
 # for i, disease in enumerate(["Lung Cancer"]):
 for i, disease in enumerate(diseases):
-    print(disease)
     # i, disease = 0, 'Lung Cancer'
+    print(disease)
     total_sensitive_targets_retrieved[disease] = {}
     percentage_sensitive_targets_retrieved[disease] = {}
     # for topK in np.append(np.arange(50, 550, 50), 1000):
@@ -216,8 +216,8 @@ for i, disease in enumerate(diseases):
         else:
             percentage_sensitive_targets_retrieved[disease][topK][cl][ori_method] = np.nan
 
-        for method in methods:
-        # for clr, method in zip(['b', 'g'], ["DLP-weighted-l2-deepwalk-opene", "preferential-attachment"]):
+        # for method in methods:
+        for clr, method in zip(['b', 'g'], ["DLP-weighted-l2-deepwalk-opene", "preferential-attachment"]):
             if screening == "":
                 pos_thresh = ""
         #     print(method)
@@ -231,7 +231,7 @@ for i, disease in enumerate(diseases):
             top100 = get_topK_intermediaries(total_df, cl, top100, topK,
                                              original=False, top=True, cl_list=list(dis_df.index))
 
-            # degree_dict[method].append(top100)
+            degree_dict[method].append(top100)
 
             total_sensitive_targets_retrieved[disease][topK][cl][method] = top100 & total_sensitive_targets
             if len(total_sensitive_targets) > 0:
@@ -240,33 +240,30 @@ for i, disease in enumerate(diseases):
             else:
                 percentage_sensitive_targets_retrieved[disease][topK][cl][method] = np.nan
 
-            # sns.histplot(degree_df.loc[set.union(*degree_dict['DLP-weighted-l2-deepwalk-opene'])].Count, label="DLP-DeepWalk",
-            #              color='b', bins=np.linspace(0, 1300), stat='density')
-            # sns.histplot(degree_df.loc[set.union(*degree_dict["preferential-attachment"])].Count, label="preferential-attachment",
-            #              color='g', bins=np.linspace(0, 1300), stat='density')
-            # sns.histplot(np.mean(degree_dict["metapath2vec++"], axis=0).astype(int),
-            #              label="metapath2vec++",
-            #              color='c', bins=25)
-            # plt.legend()
-            # plt.title("Average degree distribution of the top 100 predictions")
-            # plt.savefig(f"drug_sensitivity_data_{ppi_scaffold}/100percent_final/degree_dist_DLPvsPREFATTACH", dpi=600)
-            # plt.show()
+            sns.histplot(degree_df.loc[set.union(*degree_dict['DLP-weighted-l2-deepwalk-opene'])].Count, label="DLP-DeepWalk",
+                         color='b', bins=np.linspace(0, 1300), stat='density')
+            sns.histplot(degree_df.loc[set.union(*degree_dict["preferential-attachment"])].Count, label="preferential-attachment",
+                         color='g', bins=np.linspace(0, 1300), stat='density')
+            plt.legend()
+            plt.title("Average degree distribution of the top 100 predictions")
+            plt.savefig(f"drug_sensitivity_data_{ppi_scaffold}/100percent_final/degree_dist_DLPvsPREFATTACH", dpi=600)
+            plt.show()
 
-            # fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(6, 3))
-            # venn({"DLP-DeepWalk": set.union(*degree_dict['DLP-weighted-l2-deepwalk-opene']),
-            #       "preferential-attachment": set.union(*degree_dict['preferential-attachment'])}, ax=axs[0],
-            #      fontsize=8, legend_loc="lower center")
-            # axs[0].set_title(f"Overal in top 100\nScaffold {ppi_scaffold} / screening {'rnai' if screening == '' else 'CRISPR'}",
-            #                  fontsize=8)
-            # venn({"DLP-DeepWalk": set.union(*degree_dict['DLP-weighted-l2-deepwalk-opene']) & all_targets,
-            #       "preferential-attachment": set.union(*degree_dict['preferential-attachment']) & all_targets}, ax=axs[1],
-            #      fontsize=8, legend_loc="lower center")
-            # axs[1].set_title(f"Overal in targets found in top 100\nScaffold {ppi_scaffold} / screening {'rnai' if screening == '' else 'CRISPR'}",
-            #                  fontsize=8)
-            # # plt.show()
-            # plt.savefig(f"drug_sensitivity_data_{ppi_scaffold}/100percent_final/"
-            #             f"venn_poster_DLPvsprefattach_overlap_{disease.replace(' ', '_')}", dpi=300)
-            # plt.close()
+            fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(6, 3))
+            venn({"DLP-DeepWalk": set.union(*degree_dict['DLP-weighted-l2-deepwalk-opene']),
+                  "preferential-attachment": set.union(*degree_dict['preferential-attachment'])}, ax=axs[0],
+                 fontsize=8, legend_loc="lower center")
+            axs[0].set_title(f"Overal in top 100\nScaffold {ppi_scaffold} / screening {'rnai' if screening == '' else 'CRISPR'}",
+                             fontsize=8)
+            venn({"DLP-DeepWalk": set.union(*degree_dict['DLP-weighted-l2-deepwalk-opene']) & all_targets,
+                  "preferential-attachment": set.union(*degree_dict['preferential-attachment']) & all_targets}, ax=axs[1],
+                 fontsize=8, legend_loc="lower center")
+            axs[1].set_title(f"Overal in targets found in top 100\nScaffold {ppi_scaffold} / screening {'rnai' if screening == '' else 'CRISPR'}",
+                             fontsize=8)
+            # plt.show()
+            plt.savefig(f"drug_sensitivity_data_{ppi_scaffold}/100percent_final/"
+                        f"venn_poster_DLPvsprefattach_overlap_{disease.replace(' ', '_')}", dpi=600)
+            plt.close()
 
 df_l = []
 for topK, v in percentage_sensitive_targets_retrieved[disease].items():
