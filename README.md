@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/436572704.svg)](https://zenodo.org/badge/latestdoi/436572704)
+
 # Setting Up the Environment
 **Prerequisit: You must have installed python 3.x. All scripts were tested on Ubuntu 18.04.3 LTS**
 
