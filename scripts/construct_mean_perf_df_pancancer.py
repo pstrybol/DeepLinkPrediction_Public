@@ -9,7 +9,7 @@ BASE_PATH = "/home/bioit/pstrybol/DepMap_DeepLinkPrediction_Benchmark"
 
 ppi_scaffold = 'STRING'
 disease = 'Pan Cancer'
-screening = '_crispr'
+screening = ''
 train_ratio = 80
 methods = [f.split('/')[-1].split('_')[0] for f in glob.glob(f"EvalNE_pancancer/method_predictions_{ppi_scaffold}{screening}/*")]
 methods = list(filter(('PanCancer').__ne__, methods))
@@ -69,8 +69,12 @@ for method in methods:
 perf_df = pd.DataFrame(ap_perf)
 perf_df.to_csv(f"EvalNE_pancancer/method_predictions_{ppi_scaffold}{screening}/ap_per_run_PanCancer.csv",
                header=True, index=True)
+
+perf_df = pd.read_csv(f"EvalNE_pancancer/method_predictions_{ppi_scaffold}{screening}/ap_per_run_PanCancer.csv",
+                      header=0, index_col=0)
 mean_perf_df = perf_df.applymap(lambda x: np.mean(x)*100).transpose()
 mean_perf_df.index = [methods_nice_name_d[d] if d in methods_nice_name_d else d for d in mean_perf_df.index]
+
 plot_heatmap_performance_values(mean_perf_df, include_mean=True, title=f"{ppi_scaffold} Pan Cancer {screening}",
                                 save_fp=f"{BASE_PATH}/CellLine_Specific_Benchmark_Res{screening}/{ppi_scaffold}/Pan_Cancer/"
                                         f"PanCancer_revised_heatmap", pdf=True)

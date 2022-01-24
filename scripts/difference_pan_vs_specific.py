@@ -108,17 +108,18 @@ for disease in diseases:
 
 plot_ = pd.DataFrame(top100_all).applymap(lambda x: len(set.union(*x))).melt(ignore_index=False)
 plot_['hue'] = plot_.index
+# plot_['variable'] = plot_['variable'].str.p
 _, ax = plt.subplots(figsize=(8, 5))
 b = sns.barplot(data=plot_, x='variable', y='value', hue='hue', palette='colorblind')
-b.set_xticklabels(diseases, rotation=30, ha='right')
+b.set_xticklabels([i.replace(' Cancer', '') for i in diseases], rotation=30, ha='right')
 b.spines['top'].set_visible(False)
 b.spines['right'].set_visible(False)
 b.spines['bottom'].set_visible(False)
 b.legend_.set_title(None)
-ax.tick_params(axis='x', labelsize=6)
-ax.tick_params(axis='y', labelsize=6)
+ax.tick_params(axis='x', labelsize=12)
+ax.tick_params(axis='y', labelsize=12)
 ax.set_ylabel("Number of unique genes in top 100\nacross all cell line", fontsize=6)
-ax.set_xlabel("Cancer Type", fontsize=6)
+ax.set_xlabel("Cancer Type", fontsize=12)
 # plt.show()
 plt.savefig(f"CellLine_Specific_Benchmark_Res{screening}/{ppi_scaffold}/PanvsSpecific_top100_deps", dpi=600)
 plt.close()
